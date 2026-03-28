@@ -451,20 +451,19 @@ class Scheduler(SchedulerInterface):
                 continue
 
             # Schedule newly needed KV blocks for the request.
-            with record_function_or_nullcontext("schedule: allocate_slots"):
-                while True:
-                    new_blocks = self.kv_cache_manager.allocate_slots(
-                        request,
-                        num_new_tokens,
-                        num_lookahead_tokens=self.num_lookahead_tokens,
-                    )
+            while True:
+                new_blocks = self.kv_cache_manager.allocate_slots(
+                    request,
+                    num_new_tokens,
+                    num_lookahead_tokens=self.num_lookahead_tokens,
+                )
 
-                    if new_blocks is not None:
-                        # The request can be scheduled.
-                        break
+                if new_blocks is not None:
+                    # The request can be scheduled.
+                    break
 
-                    # The request cannot be scheduled.
-                    # Preempt the lowest-priority request.
+                # The request cannot be scheduled.
+                # Preempt the lowest-priority request.
                     if self.policy == SchedulingPolicy.PRIORITY:
                         preempted_req = max(
                             self.running,
