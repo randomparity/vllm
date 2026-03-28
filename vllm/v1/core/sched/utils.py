@@ -92,12 +92,10 @@ def remove_all(lst: list, items_to_remove: set) -> list:
 
 
 def check_stop(request: Request, max_model_len: int) -> bool:
-    assert not request.pooling_params
-
     sampling_params = request.sampling_params
-    assert sampling_params is not None
 
-    if request.num_output_tokens < sampling_params.min_tokens:
+    num_output = request.num_output_tokens
+    if num_output < sampling_params.min_tokens:
         return False
 
     last_token_id = request.output_token_ids[-1]
@@ -105,23 +103,20 @@ def check_stop(request: Request, max_model_len: int) -> bool:
         request.status = RequestStatus.FINISHED_STOPPED
         return True
 
-    if last_token_id in (sampling_params.stop_token_ids or ()):
+    stop_token_ids = sampling_params.stop_token_ids
+    if stop_token_ids and last_token_id in stop_token_ids:
         request.status = RequestStatus.FINISHED_STOPPED
         request.stop_reason = last_token_id
         return True
-    if (
-        request.num_tokens >= max_model_len
-        or request.num_output_tokens >= request.max_tokens
-    ):
+
+    if request.num_tokens >= max_model_len or num_output >= request.max_tokens:
         request.status = RequestStatus.FINISHED_LENGTH_CAPPED
         return True
 
     repetition_detection = sampling_params.repetition_detection
-    if repetition_detection is not None and (
-        check_sequence_repetition(
-            request.output_token_ids,
-            repetition_detection,
-        )
+    if repetition_detection is not None and check_sequence_repetition(
+        request.output_token_ids,
+        repetition_detection,
     ):
         request.status = RequestStatus.FINISHED_REPETITION
         request.stop_reason = "repetition_detected"
