@@ -2050,12 +2050,12 @@ class EngineArgs:
         else:
             # TODO(woosuk): Tune the default values for other hardware.
             default_max_num_batched_tokens = {
-                UsageContext.LLM_CLASS: 8192,
-                UsageContext.OPENAI_API_SERVER: 8192,
+                UsageContext.LLM_CLASS: 16384,
+                UsageContext.OPENAI_API_SERVER: 16384,
             }
             default_max_num_seqs = {
-                UsageContext.LLM_CLASS: 256,
-                UsageContext.OPENAI_API_SERVER: 256,
+                UsageContext.LLM_CLASS: 512,
+                UsageContext.OPENAI_API_SERVER: 512,
             }
 
         # tpu specific default values.
